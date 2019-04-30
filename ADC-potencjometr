@@ -1,0 +1,33 @@
+$regfile = "m8def.dat"
+$crystal = 4000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+Config Lcd = 16 * 2
+Config Lcdpin = Pin , Db4 = Portc.2 , Db5 = Portc.3 , Db6 = Portc.4 , Db7 = Portb.1 , E = Portc.1 , Rs = Portc.0
+
+Config Adc = Single , Prescaler = Auto , Reference = Avcc
+
+   Cls
+   Cursor Off Noblink
+   Lcd "Miernik napiecia"
+   Waitms 3000
+
+   Dim S As Integer
+   Dim X As Double
+Do
+   Cls
+   Lcd "Napiecie wynosi: "
+   S = Getadc(5)
+   X = S
+   X = X * 5
+   X = X / 1023
+   Lowerline
+
+   Lcd X
+   Lcd "V"
+   Waitms 500
+   Upperline
+Loop
+End
