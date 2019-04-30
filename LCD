@@ -1,0 +1,41 @@
+$regfile = "m8def.dat"
+$crystal = 4000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+
+Config Lcdpin = Pin , Db4 = Portc.2 , Db5 = Portc.3 , Db6 = Portc.4 , Db7 = Portb.1 , E = Portc.1 , Rs = Portc.0
+Dim A As Byte
+Dim I As Byte
+A = 0
+Config Lcd = 16 * 2
+
+Deflcdchar 2 , 32 , 32 , 23 , 20 , 31 , 5 , 29 , 32         ' niespodzianka
+Deflcdchar 0 , 14 , 4 , 14 , 21 , 4 , 10 , 10 , 10          ' ludz
+Deflcdchar 1 , 31 , 17 , 19 , 18 , 30 , 32 , 32 , 32        ' kwadr
+Deflcdchar 3 , 1 , 5 , 14 , 20 , 4 , 4 , 10 , 10            ' reka
+Cls
+
+
+Do
+For I = 1 To A
+Shiftcursor Right
+Next
+
+Lcd Chr(1)
+
+Lowerline
+For I = 1 To A
+Shiftcursor Right
+Next
+
+Lcd Chr(3)
+
+Wait 3
+Upperline
+
+A = A + 1
+
+
+Loop
