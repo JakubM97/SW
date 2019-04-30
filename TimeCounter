@@ -1,0 +1,34 @@
+$regfile = "m8def.dat"
+$crystal = 8000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+
+Config Lcd = 16 * 2
+Config Lcdpin = Pin , Db4 = Portc.2 , Db5 = Portc.3 , Db6 = Portc.4 , Db7 = Portc.5 , E = Portc.1 , Rs = Portc.0
+
+Config Timer0 = Counter , Edge = Falling
+
+
+Config Debounce = 30
+
+Debounce Pind.4 , 0 , 0
+
+
+
+
+Portd.4 = 1
+Cursor Off Noblink
+
+Do
+  Cls
+
+   Lcd "licznik: "
+   Lcd Tcnt0
+   Waitms 150
+
+Loop
+
+
+End
