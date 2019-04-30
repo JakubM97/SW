@@ -1,0 +1,83 @@
+$regfile = "m8def.dat"
+$crystal = 4000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+Config Lcd = 16 * 2
+
+'Config Timer1 = Pwm , Pwm = 8 , Compare A Pwm = Clear Up , Compare B Pwm = Clear Up , Prescale = 1
+Config Timer1 = Pwm , Pwm = 8 , Compare B Pwm = Clear Up , Prescale = 1
+
+Config Lcdpin = Pin , Db4 = Portc.2 , Db5 = Portc.3 , Db6 = Portc.4 , Db7 = Portc.5 , E = Portc.1 , Rs = Portc.0
+Config Pinb.1 = Output
+Config Timer0 = Timer , Prescale = 64
+
+On Timer0 Przerwanie_co_2ms
+Led Alias Portb.1
+Dim Licznik As Integer
+Dim Sekundy As Integer
+Dim Minuty As Integer
+Dim Modulo As Integer
+Dim Jasnosc As Byte
+Dim Zmiana As Bit
+Dim Timestop As Bit
+Enable Interrupts
+Enable Timer0
+Timer0 = 6
+Licznik = 0
+Sekundy = 30
+Minuty = 1
+Jasnosc = 0
+Cls
+Cursor Off Noblink
+
+Do
+ If Minuty = 0 And Sekundy = 0 Then
+   Timestop = 1
+   Cls
+   Lcd "Booooom"
+ End If
+ If Sekundy = 0 Then
+    Sekundy = 60
+    Minuty = Minuty - 1
+ End If
+ If Licznik > 490 Then
+   Cls
+   If Sekundy > 10 Then
+     Lcd "Time: "
+     Lcd "0" + Minuty + ":" + Sekundy
+   End If
+ If Sekundy < 10 Then
+    Lcd "Time: "
+    Lcd "0" + Minuty + ":" + "0" + Sekundy
+ End If
+ End If
+Loop
+
+End
+Przerwanie_co_2ms:
+ Counter0 = Counter0 + 6
+ If Timestop = 0 Then
+ Incr Licznik
+ If Zmiana = 0 Then
+ Pwm1b = Jasnosc
+ Incr Jasnosc
+   If Jasnosc > 160 Then
+      Zmiana = 1
+   End If
+ Else
+ Pwm1b = Jasnosc
+ Decr Jasnosc
+   If Jasnosc < 1 Then
+     Zmiana = 0
+   End If
+ End If
+
+ If Licznik = 500 Then
+Sekundy = Sekundy - 1
+
+ Licznik = 0
+ End If
+ End If
+Return
