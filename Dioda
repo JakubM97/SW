@@ -1,0 +1,67 @@
+$regfile = "m8def.dat"
+$crystal = 4000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+
+Config Portc = Output
+Config Portb = Input
+
+Dim Zm As Byte
+Zm = 1
+Dim T As Byte
+T = 1
+Dim Predkosc As Integer
+Predkosc = 1000
+Portb.1 = 1
+Portb.2 = 1
+Portb.0 = 1
+
+Do
+   If Pinb.1 = 0 Then
+      Do
+
+         While Zm <= 5
+
+         Incr Zm
+         Portc.zm = 1
+         Waitms Predkosc
+
+         If Pinb.2 = 0 Then
+            Exit Do
+         End If
+
+         Wend
+
+
+         While Zm >= 1
+
+         Portc.zm = 0
+         Decr Zm
+         Waitms Predkosc
+
+         If Pinb.2 = 0 Then
+            Exit Do
+         End If
+
+         Wend
+
+      Loop
+
+
+      Zm = 1
+      Portc = 0
+
+   End If
+
+     If Pinb.0 = 0 Then
+      Wait 1
+      Predkosc = Predkosc - 100
+      End If
+
+
+Loop
+
+
+End
