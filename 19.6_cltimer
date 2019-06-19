@@ -1,0 +1,311 @@
+$regfile = "m8def.dat"
+$crystal = 4000000
+$hwstack = 40
+$swstack = 16
+$framesize = 32
+
+Config Lcd = 16 * 2
+
+Config Lcdpin = Pin , Db4 = Portc.2 , Db5 = Portc.3 , Db6 = Portc.4 , Db7 = Portc.5 , E = Portc.1 , Rs = Portc.0
+Config Timer0 = Timer , Prescale = 64
+
+Config Debounce = 30
+Debounce Pind.4 , 0 , 0
+Debounce Pind.3 , 0 , 0
+Debounce Pind.2 , 0 , 0
+Debounce Pind.1 , 0 , 0
+Debounce Pind.0 , 0 , 0
+
+Portd.4 = 1                                                 'Start
+Portd.3 = 1                                                 'Mode
+Portd.2 = 1                                                 ' "+"
+Portd.1 = 1                                                 ' "-"
+Portd.0 = 1
+
+Plusbutton Alias Pind.2
+Minusbutton Alias Pind.1
+Startbutton Alias Pind.4
+Modebutton Alias Pind.3
+Cltimerbutton Alias Pind.0
+
+
+On Timer0 Przerwanie_co_2ms
+Dim Licznik As Integer
+Dim Licznikt As Integer
+Dim Sekundy As Byte
+Dim Minuty As Byte
+Dim Godziny As Byte
+Dim Cltimer As Byte
+'Cltimer = 0 -> timer z wlaczonym odliczaniem
+'Cltimer = 1 -> clock z wlaczonym naliczaniem
+'cltimer = 2 -> timer z WYLACZONYM odliczaniem
+'cltimer  = 3 -> clock z WYLACZONYM naliczaniem
+Dim Jednostkaczas As Byte
+Dim Modulo As Byte
+Dim Tt As String * 3
+
+Dim Godzinyt As Byte
+Dim Sekundyt As Byte
+Dim Minutyt As Byte
+
+
+Enable Interrupts
+Enable Timer0
+Timer0 = 6
+Licznik = 0
+
+Cltimer = 1
+
+Sekundy = 55
+Minuty = 59
+Godziny = 0
+
+
+Jednostkaczas = 0
+Tt = String(2 , 115)
+Sekundyt = 0
+Minutyt = 1
+Godzinyt = 0
+
+
+Cls
+Cursor Off Noblink
+
+Do
+
+If Modebutton = 1 And Plusbutton = 1 And Startbutton = 1 And Minusbutton = 1 And Cltimerbutton = 0 Then
+
+   If Cltimer <> 1 Then
+      Cltimer = 1
+   Else
+      Cltimer = 2
+   End If
+
+   Waitms 300
+
+End If
+
+
+'obsluga start/stop button
+
+
+ If Startbutton = 0 And Plusbutton = 1 And Minusbutton = 1 Then
+      If Cltimer = 1 Then
+         Disable Interrupts
+      Elseif Cltimer = 0 Then
+         Cltimer = 2
+      Elseif Cltimer = 4 Then
+         Enable Interrupts
+      Else
+         Cltimer = 0
+      End If
+
+
+   Waitms 200
+ End If
+
+
+'wyswietlanie jezeli timestop = 1
+ If Cltimer = 1 Or Cltimer = 4 Then
+   Cls
+   Upperline
+   Lcd "Clock (" + Tt + "):"
+   Lowerline
+   Lcd Godziny + ":" + Minuty + ":" + Sekundy
+   Waitms 210
+
+
+   If Sekundy > 59 Then
+    Sekundy = 0
+    Minuty = Minuty + 1
+   End If
+
+   If Minuty > 59 Then
+      Minuty = 0
+      Godziny = Godziny + 1
+   End If
+
+   If Godziny > 23 Then
+      Godziny = 0
+   End If
+
+
+ End If
+
+
+
+
+'obsluga modebutton
+  If Modebutton = 0 And Minusbutton = 1 And Plusbutton = 1 Then
+    If Jednostkaczas = 2 Then
+      Jednostkaczas = 0
+      Tt = String(2 , 115)
+   Elseif Jednostkaczas = 1 Then
+      Jednostkaczas = 2
+      Tt = String(2 , 104)
+   Elseif Jednostkaczas = 0 Then
+      Jednostkaczas = 1
+      Tt = String(2 , 109)
+    End If
+   Waitms 210
+  End If
+
+
+'jezeli klika sie minus - problem
+'
+
+'obsluga +/-
+
+
+'obsluga plusbutton
+
+  If Plusbutton = 0 And Minusbutton = 1 And Modebutton = 1 Then
+   Waitms 100
+   If Jednostkaczas = 0 Then
+         Sekundy = Sekundy + 1
+   Elseif Jednostkaczas = 1 Then
+      Minuty = Minuty + 1
+   Else
+      Godziny = Godziny + 1
+   End If
+
+   Waitms 100
+
+  End If
+
+
+
+
+
+' obluga minusbutton
+
+ If Plusbutton = 1 And Minusbutton = 0 And Modebutton = 1 Then
+   Waitms 100
+   If Jednostkaczas = 0 Then
+         If Sekundy = 0 Then
+            If Minuty = 0 Then
+               If Godziny = 0 Then
+                  Godziny = 23
+                  Minuty = 59
+                  Sekundy = 59
+               Else
+                  Godziny = Godziny - 1
+                  Minuty = 59
+                  Sekundy = 59
+               End If
+            Else
+               Minuty = Minuty - 1
+               Sekundy = 59
+            End If
+         Else
+            Sekundy = Sekundy - 1
+         End If
+
+   Elseif Jednostkaczas = 1 Then
+      If Minuty = 0 Then
+         If Godziny = 0 Then
+            Godziny = 23
+            Minuty = 59
+         Else
+            Godziny = Godziny - 1
+            Minuty = 59
+         End If
+      Else
+         Minuty = Minuty - 1
+      End If
+   Else
+      If Godziny = 0 Then
+         Godziny = 23
+      Else
+         Godziny = Godziny - 1
+      End If
+   End If
+
+   Waitms 100
+
+ End If
+
+
+
+
+
+
+Loop
+
+End
+
+Przerwanie_co_2ms:
+
+Counter0 = Counter0 + 6
+
+Incr Licznik
+Incr Licznikt
+
+
+If Cltimer = 0 Then
+   If Licznikt = 500 Then
+      Sekundyt = Sekundyt - 1
+      Licznik = 0
+  End If
+  If Sekundyt = 0 Then
+      Sekundyt = 59
+      If Minutyt = 0 Then
+         Minutyt = 59
+         Godzinyt = Godzinyt - 1
+      Else
+         Minutyt = Minutyt - 1
+      End If
+  End If
+End If
+
+   If Licznik = 500 Then
+      Sekundy = Sekundy + 1
+      Licznik = 0
+   End If
+
+   If Sekundy > 59 Then
+    Sekundy = 0
+    Minuty = Minuty + 1
+   End If
+
+   If Minuty > 59 Then
+      Minuty = 0
+      Godziny = Godziny + 1
+   End If
+
+   If Godziny > 23 Then
+      Godziny = 0
+   End If
+
+
+
+
+Modulo = Licznik Mod 100
+
+
+'wyswietlanie
+If Modulo = 0 Then
+
+   If Cltimer = 1 Then
+      Cls
+      Upperline
+      Lcd "Clock (" + Tt + "):"
+      Lowerline
+      Lcd Godziny + ":" + Minuty + ":" + Sekundy
+
+   Else
+
+      Cls
+      Upperline
+      Lcd "Timer (" + Tt + "):"
+      Lowerline
+      Lcd Godzinyt + ":" + Minutyt + ":" + Sekundyt
+
+
+   End If
+
+
+End If
+
+Return
+
